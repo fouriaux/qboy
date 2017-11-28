@@ -8,5 +8,5 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON) #...is required
 set(CMAKE_CXX_EXTENSIONS OFF) #...without compiler extensions like gnu++11
 
 add_subdirectory(src)
-enable_testing()
-add_subdirectory(tests)
+#enable_testing()
+#add_subdirectory(tests)

@@ -7,11 +7,10 @@ using json = nlohmann::json;
 
 static json configuration;
 
-// not yet implemented
+// TODO not yet implemented : GO command should try to launch on remote server
 void set_server (char* server_name) {
   configuration["server"] = server_name;
 }
-
 
 int parseArgs (int argc, char** argv) {
    int i = 0;
@@ -66,19 +65,15 @@ int parseArgs (int argc, char** argv) {
 int read_cfg (const char* filename) {
   std::ifstream cfg (filename, std::ifstream::in);
   if (cfg.fail()) return -1;
-  
   cfg >> configuration;
   return 0;
 }
 
 int main (int argc, char** argv) {
-  const char* default_config = "./qboy.cfg";
-  
+  const char* default_config = ".qboy.json";
   if (read_cfg(get_env_or_default("QBOY_CONFIG", default_config)) != 0) {
     return parseArgs (argc, argv);
   } else {
     return -1;
   }
-   
 }
-

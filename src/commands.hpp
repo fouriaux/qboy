@@ -4,54 +4,41 @@
 #include <string>
 
 using json = nlohmann::json;
-static int max_jobs_allowed;
 
 void help () {
-  std::cout << "qboy [DO <job_script> | DONT DO <job_script> | GO | LIST | STOP | ?]" << std::endl;
+  std::cout << "qboy [DO <job_script> | GO | LIST | STOP | CREATE | ?]" << std::endl;
   std::cout << "ring qboy and it will lift your jobs to the queue for you" << std::endl;
 }
 
-
-//TODO the do_command should be based on this watch_for_command which is more generic
-// Syntax: watch for <condition> in <command>
-int watch_for_command (int argc, char** argv) {
-  // watch for : idle nodes, job termination etc...
-  // the check is added to cron table
-  // if they are availables: notify the user: by mail or by notify.
-
-  return 0;
-}
-
-
-// go immediately refresh and schedule qboy if not already in crontab
-int go_command (json& cfg, const char* arg = "") {
-  if (! is_qboy_scheduled(cfg)) {
-    cron_schedule(cfg);
-  }
-  //TODO: get a lock on directory .qboy
-  int nb_left = max_jobs_allowed - get_enqueued(cfg).size();
-  for (std::string& f : get_todos (cfg, nb_left)) {
-    submit_job (cfg, f.c_str());
-  }
-  return 0;
-}
-
-int stop_command (json& cfg) {
-   cron_unschedule(cfg);
+int stop_command (json& queue) {
+   cron_unschedule(queue);
    return 0;
 }
 
-int ls_command (json& cfg) {
-  for (auto& job : get_todos(cfg)) {
+// go immediately refresh and schedule qboy if not already in crontab
+int go_command (json& queue, const char* arg = "") {
+  if (! is_qboy_scheduled(queue)) {
+    cron_schedule(queue);
+  }
+  int nb_left = queue["max_allowed"].get<int>() - get_enqueued(queue).size();
+  for (std::string& f : get_todos (queue, nb_left)) {
+    submit_job (queue, f.c_str());
+  }
+  if (get_todos(queue).size() == 0) stop_command(queue);
+  return 0;
+}
+
+int ls_command (json& queue) {
+  for (auto& job : get_todos(queue)) {
     std::cout << job.c_str() << std::endl;
   }
-  for (auto& job: get_enqueued(cfg)) {
+  for (auto& job: get_enqueued(queue)) {
     std::cout << job.c_str() << std::endl;
   }
   return 0;
 }
 
-
+// TODO return every queues already scheduled
 int status_command (json& cfg) {
   unsigned int minutes = 0;
   if (is_qboy_scheduled(cfg)) {
@@ -60,22 +47,14 @@ int status_command (json& cfg) {
   return 0;
 }
 
-
-// TODO: if possible to queue directly, do it, otherwise write it in .qboy and schedule for next time
-int do_command (json& cfg, const char* job) {
-  go_command(cfg);
-  std::cout << shell_cmd ("ls -l").c_str() << std::endl;
-  int nb_left = max_jobs_allowed - get_enqueued (cfg).size();
-  //TODO: lock on directory
-  if (nb_left > 0) {
-    submit_job(cfg, job);
-  } else { //TODO: or submit failed
-    enqueue_job(cfg, job);
-  }
+// add job obj to a queue and schedule for next time
+int do_command (json& queue, const char* job) {
+  enqueue_job(queue, job);
+  go_command(queue);
   return 0;
 }
 
-int dont_do_command (json& cfg, const char* arg) {
-  std::cout << shell_cmd ("ls -l").c_str() << std::endl;
-  return 0;
+//TODO: search job in the queue, and delete it. Cancel submited job if already submitted
+int dont_do_command(json& queue, const char* ID) {
+  return -1;
 }
