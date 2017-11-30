@@ -69,6 +69,7 @@ std::vector<std::string> get_todos (json& queue, const int nb_lefts) {
 }
 
 void enqueue_job (json& queue, const char* job) {
+   assert (queue.at("jobs"));
    queue["jobs"].push_back({{"job_name", job}});
 }
 

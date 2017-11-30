@@ -6,7 +6,9 @@
 using json = nlohmann::json;
 
 void help () {
-  std::cout << "qboy [DO <job_script> | GO | LIST | STOP | CREATE | ?]" << std::endl;
+  std::cout << "qboy [ DO <job_script> <queue.json>"
+            << " | GO <queue.json>| LIST <queue.json>"
+            << "| STOP <queue.json>| CREATE | ?]" << std::endl;
   std::cout << "ring qboy and it will lift your jobs to the queue for you" << std::endl;
 }
 
